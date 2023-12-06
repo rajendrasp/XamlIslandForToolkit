@@ -1,12 +1,16 @@
 ﻿#pragma once
 
-#include "MainPage.g.h"
+#include "winrt/Windows.UI.Xaml.h"
+#include "winrt/Windows.UI.Xaml.Markup.h"
+#include "winrt/Windows.UI.Xaml.Interop.h"
+#include "winrt/Windows.UI.Xaml.Controls.Primitives.h"
+#include "MyUserControl.g.h"
 
 namespace winrt::MyUWPApp::implementation
 {
-    struct MainPage : MainPageT<MainPage>
+    struct MyUserControl : MyUserControlT<MyUserControl>
     {
-        MainPage()
+        MyUserControl() 
         {
             // Xaml objects should not call InitializeComponent during construction.
             // See https://github.com/microsoft/cppwinrt/tree/master/nuget#initializecomponent
@@ -21,7 +25,7 @@ namespace winrt::MyUWPApp::implementation
 
 namespace winrt::MyUWPApp::factory_implementation
 {
-    struct MainPage : MainPageT<MainPage, implementation::MainPage>
+    struct MyUserControl : MyUserControlT<MyUserControl, implementation::MyUserControl>
     {
     };
 }
