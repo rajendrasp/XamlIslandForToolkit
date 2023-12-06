@@ -10,12 +10,16 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+winrt::MyUWPApp::App hostApp{ nullptr };
+winrt::Windows::UI::Xaml::Hosting::DesktopWindowXamlSource _desktopWindowXamlSource{ nullptr };
+winrt::MyUWPApp::MyUserControl _myUserControl{ nullptr };
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+void AdjustLayout(HWND);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -26,6 +30,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: Place code here.
+    winrt::init_apartment(winrt::apartment_type::single_threaded);
+    hostApp = winrt::MyUWPApp::App{};
+    _desktopWindowXamlSource = winrt::Windows::UI::Xaml::Hosting::DesktopWindowXamlSource{};
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -95,20 +102,35 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // Store instance handle in our global variable
+    hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+    if (!hWnd)
+    {
+        return FALSE;
+    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+    // Begin XAML Islands walkthrough code.
+    if (_desktopWindowXamlSource != nullptr)
+    {
+        auto interop = _desktopWindowXamlSource.as<IDesktopWindowXamlSourceNative>();
+        check_hresult(interop->AttachToWindow(hWnd));
+        HWND hWndXamlIsland = nullptr;
+        interop->get_WindowHandle(&hWndXamlIsland);
+        RECT windowRect;
+        ::GetWindowRect(hWnd, &windowRect);
+        ::SetWindowPos(hWndXamlIsland, NULL, 0, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_SHOWWINDOW);
+        _myUserControl = winrt::MyUWPApp::MyUserControl();
+        _desktopWindowXamlSource.Content(_myUserControl);
+    }
+    // End XAML Islands walkthrough code.
 
-   return TRUE;
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
+
+    return TRUE;
 }
 
 //
@@ -152,6 +174,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_DESTROY:
         PostQuitMessage(0);
+        if (_desktopWindowXamlSource != nullptr)
+        {
+            _desktopWindowXamlSource.Close();
+            _desktopWindowXamlSource = nullptr;
+        }
+        break;
+    case WM_SIZE:
+        AdjustLayout(hWnd);
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
@@ -177,4 +207,17 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+void AdjustLayout(HWND hWnd)
+{
+    if (_desktopWindowXamlSource != nullptr)
+    {
+        auto interop = _desktopWindowXamlSource.as<IDesktopWindowXamlSourceNative>();
+        HWND xamlHostHwnd = NULL;
+        check_hresult(interop->get_WindowHandle(&xamlHostHwnd));
+        RECT windowRect;
+        ::GetWindowRect(hWnd, &windowRect);
+        ::SetWindowPos(xamlHostHwnd, NULL, 0, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_SHOWWINDOW);
+    }
 }
