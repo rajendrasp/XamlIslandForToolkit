@@ -4,8 +4,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.7.34302.85
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyDesktopWin32App", "MyDesktopWin32App.vcxproj", "{7CDF9E14-1423-4108-A22C-00BF18545409}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7AD8A393-653E-4702-9DE8-D7CFBB8B2DB7} = {7AD8A393-653E-4702-9DE8-D7CFBB8B2DB7}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyUWPApp", "..\MyUWPApp\MyUWPApp.vcxproj", "{7AD8A393-653E-4702-9DE8-D7CFBB8B2DB7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2B8760C5-8527-4D16-92A9-BB03AFFA75E3}"
+	ProjectSection(SolutionItems) = preProject
+		Solution.props = Solution.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
